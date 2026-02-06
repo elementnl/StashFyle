@@ -2,6 +2,9 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "StashFyle",
+  "appearance": {
+    "default": "light"
+  },
   "colors": {
     "primary": "#344966",
     "light": "#4a6a8a",
@@ -35,13 +38,36 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "API Reference",
+            "group": "Overview",
             "pages": [
-              "api-reference/overview",
-              "api-reference/upload",
-              "api-reference/files",
-              "api-reference/signed-urls",
-              "api-reference/usage"
+              "api-reference/overview"
+            ]
+          },
+          {
+            "group": "Uploads",
+            "pages": [
+              "api-reference/upload"
+            ]
+          },
+          {
+            "group": "Files",
+            "pages": [
+              "api-reference/list-files",
+              "api-reference/get-file",
+              "api-reference/delete-file"
+            ]
+          },
+          {
+            "group": "Signed URLs",
+            "pages": [
+              "api-reference/signed-urls"
+            ]
+          },
+          {
+            "group": "Account",
+            "pages": [
+              "api-reference/usage",
+              "api-reference/health"
             ]
           }
         ]

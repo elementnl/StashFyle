@@ -1,0 +1,61 @@
+---
+title: Delete File
+api: DELETE /v1/files/{id}
+description: Permanently delete a file.
+---
+
+Permanently delete a file from storage.
+
+<Warning>
+  Deletion is permanent and cannot be undone. The file will be removed from storage immediately.
+</Warning>
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>
+  The file ID. Example: `f_abc123xyz`
+</ParamField>
+
+## Response
+
+<ResponseField name="success" type="boolean" required>
+  Always `true` on successful deletion.
+</ResponseField>
+
+## Example
+
+<CodeGroup>
+
+```bash curl
+curl -X DELETE https://api.stashfyle.com/v1/files/f_abc123xyz \
+  -H "Authorization: Bearer sk_live_xxx"
+```
+
+```javascript JavaScript
+await fetch('https://api.stashfyle.com/v1/files/f_abc123xyz', {
+  method: 'DELETE',
+  headers: { 'Authorization': 'Bearer sk_live_xxx' }
+});
+```
+
+```python Python
+requests.delete(
+    'https://api.stashfyle.com/v1/files/f_abc123xyz',
+    headers={'Authorization': 'Bearer sk_live_xxx'}
+)
+```
+
+</CodeGroup>
+
+```json Response
+{
+  "success": true
+}
+```
+
+## Errors
+
+| Code | Status | Description |
+|------|--------|-------------|
+| `unauthorized` | 401 | Invalid or missing API key |
+| `not_found` | 404 | File not found or already deleted |

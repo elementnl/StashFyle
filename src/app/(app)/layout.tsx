@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth/supabase";
+import { usersRepo } from "@/lib/db/repositories/users";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { GracePeriodBanner } from "@/components/grace-period-banner";
@@ -15,7 +16,8 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const userName = (user.user_metadata?.name as string) ?? null;
+  const dbUser = await usersRepo.findById(user.id);
+  const userName = dbUser?.name ?? null;
 
   return (
     <SidebarProvider>

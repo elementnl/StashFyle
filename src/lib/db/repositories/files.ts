@@ -150,6 +150,17 @@ export const filesRepo = {
     return { files: results, cursor: nextCursor };
   },
 
+  async countByUser(userId: string): Promise<number> {
+    const { count, error } = await db
+      .from("files")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .is("deleted_at", null);
+
+    if (error) throw error;
+    return count ?? 0;
+  },
+
   async findByUserSortedBySize(
     userId: string,
     order: "asc" | "desc" = "desc"

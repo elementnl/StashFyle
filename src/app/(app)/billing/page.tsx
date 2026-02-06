@@ -26,7 +26,7 @@ export default async function BillingPage() {
 
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border">
+      <header className="flex h-14 shrink-0 items-center gap-2 ">
         <div className="flex items-center gap-2 px-6">
           <SidebarTrigger className="-ml-1" />
           <Separator
@@ -42,8 +42,8 @@ export default async function BillingPage() {
           </Breadcrumb>
         </div>
       </header>
-      <div className="flex flex-1 flex-col gap-6 p-8">
-        <div className="mx-auto w-full max-w-4xl">
+      <div className="flex flex-1 flex-col p-8">
+        <div className="mx-auto w-full max-w-6xl flex flex-col gap-6">
           <BillingClient
             subscription={subscription}
             usage={{

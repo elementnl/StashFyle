@@ -4,8 +4,6 @@ import { useState } from "react";
 import { Loader2, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { createCheckout, openBillingPortal } from "./actions";
 import type { SubscriptionPlan, SubscriptionStatus } from "@/lib/db/types";
 import type { PriceKey } from "@/lib/billing/stripe";
@@ -28,10 +26,10 @@ interface BillingClientProps {
   };
 }
 
-const PLAN_DETAILS: Record<SubscriptionPlan, { name: string; color: string }> = {
-  free: { name: "Free", color: "bg-zinc-100 text-zinc-700" },
-  hobby: { name: "Hobby", color: "bg-blue-100 text-blue-700" },
-  pro: { name: "Pro", color: "bg-purple-100 text-purple-700" },
+const PLAN_BADGES: Record<SubscriptionPlan, { name: string; className: string }> = {
+  free: { name: "Free", className: "bg-muted text-muted-foreground" },
+  hobby: { name: "Hobby", className: "bg-primary/10 text-primary" },
+  pro: { name: "Pro", className: "bg-secondary text-secondary-foreground" },
 };
 
 function formatBytes(bytes: number): string {
@@ -54,7 +52,7 @@ export function BillingClient({ subscription, usage, limits }: BillingClientProp
   const [loading, setLoading] = useState<string | null>(null);
   const [isYearly, setIsYearly] = useState(false);
 
-  const planInfo = PLAN_DETAILS[subscription.plan];
+  const planBadge = PLAN_BADGES[subscription.plan];
   const storagePercent = Math.min((usage.storage_bytes / limits.maxStorage) * 100, 100);
   const uploadsPercent = Math.min((usage.upload_count / limits.maxUploads) * 100, 100);
   const isFree = subscription.plan === "free";
@@ -80,147 +78,158 @@ export function BillingClient({ subscription, usage, limits }: BillingClientProp
   }
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
-      {/* Current Plan Card */}
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-medium">Your Plan</CardTitle>
-            <span className={`rounded-full px-3 py-1 text-sm font-medium ${planInfo.color}`}>
-              {planInfo.name}
-            </span>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
+    <>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Billing</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage your subscription and usage
+          </p>
+        </div>
+        <Badge className={`text-xs ${planBadge.className}`}>
+          {planBadge.name} Plan
+        </Badge>
+      </div>
+
+      <div className="rounded-lg border border-border p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-medium">Current Plan</h2>
           {!isFree && subscription.currentPeriodEnd && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {subscription.cancelAtPeriodEnd
                 ? `Cancels ${formatDate(subscription.currentPeriodEnd)}`
                 : `Renews ${formatDate(subscription.currentPeriodEnd)}`}
             </p>
           )}
+        </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Storage</span>
-                <span className="text-muted-foreground">
-                  {formatBytes(usage.storage_bytes)} / {formatBytes(limits.maxStorage)}
-                </span>
-              </div>
-              <Progress value={storagePercent} className="h-1.5" />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Storage</span>
+              <span className="text-muted-foreground">
+                {formatBytes(usage.storage_bytes)} / {formatBytes(limits.maxStorage)}
+              </span>
             </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Uploads this month</span>
-                <span className="text-muted-foreground">
-                  {usage.upload_count.toLocaleString()} / {limits.maxUploads.toLocaleString()}
-                </span>
-              </div>
-              <Progress value={uploadsPercent} className="h-1.5" />
+            <div className="h-2 rounded-full bg-primary/10 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{ width: `${storagePercent}%` }}
+              />
             </div>
           </div>
 
-          {!isFree && (
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleManageBilling}
-              disabled={loading === "portal"}
-            >
-              {loading === "portal" ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  Manage Subscription
-                  <ArrowUpRight className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Upgrade Options for Free Users */}
-      {isFree && (
-        <Card>
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-medium">Upgrade</CardTitle>
-              <div className="flex items-center rounded-lg border p-1">
-                <button
-                  onClick={() => setIsYearly(false)}
-                  className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                    !isYearly ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Monthly
-                </button>
-                <button
-                  onClick={() => setIsYearly(true)}
-                  className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
-                    isYearly ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Yearly
-                  <Badge className={`ml-1.5 ${isYearly ? "bg-white text-primary" : "bg-primary text-white"}`}>
-                    Save
-                  </Badge>
-                </button>
-              </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Uploads this month</span>
+              <span className="text-muted-foreground">
+                {usage.upload_count.toLocaleString()} / {limits.maxUploads.toLocaleString()}
+              </span>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {/* Hobby Plan */}
+            <div className="h-2 rounded-full bg-primary/10 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{ width: `${uploadsPercent}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {!isFree && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-5"
+            onClick={handleManageBilling}
+            disabled={loading === "portal"}
+          >
+            {loading === "portal" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                Manage Subscription
+                <ArrowUpRight className="ml-1 h-3 w-3" />
+              </>
+            )}
+          </Button>
+        )}
+      </div>
+
+      {isFree && (
+        <div className="rounded-lg border border-border p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-medium">Upgrade</h2>
+            <div className="flex items-center rounded-md border p-0.5">
+              <button
+                onClick={() => setIsYearly(false)}
+                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                  !isYearly ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setIsYearly(true)}
+                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                  isYearly ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Yearly
+                <Badge className={`ml-2 ${isYearly ? "text-white bg-white/20" : "text-primary bg-primary/20"}`}>
+                  Save
+                </Badge>
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-3">
             <button
               onClick={() => handleUpgrade(isYearly ? "hobby_yearly" : "hobby_monthly")}
               disabled={loading !== null}
-              className="flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors hover:bg-muted/50 disabled:opacity-50"
+              className="flex w-full items-center justify-between rounded-lg border border-border p-4 text-left transition-colors hover:bg-muted/50 disabled:opacity-50"
             >
-              <div className="space-y-1">
-                <div className="font-medium">Hobby</div>
-                <div className="text-sm text-muted-foreground">10 GB storage, 100 MB files</div>
+              <div>
+                <div className="text-sm font-medium">Hobby</div>
+                <div className="text-xs text-muted-foreground mt-0.5">10 GB storage, 100 MB files</div>
               </div>
               <div className="text-right">
                 {loading === (isYearly ? "hobby_yearly" : "hobby_monthly") ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    <div className="font-semibold">${isYearly ? "7.50" : "9"}/mo</div>
+                    <div className="text-sm font-medium">${isYearly ? "7.50" : "9"}/mo</div>
                     {isYearly && <div className="text-xs text-muted-foreground">$90/year</div>}
                   </>
                 )}
               </div>
             </button>
 
-            {/* Pro Plan */}
             <button
               onClick={() => handleUpgrade(isYearly ? "pro_yearly" : "pro_monthly")}
               disabled={loading !== null}
-              className="flex w-full items-center justify-between rounded-lg border bg-primary/5 p-4 text-left transition-colors hover:bg-primary/10 disabled:opacity-50"
+              className="flex w-full items-center justify-between rounded-lg border border-primary/30 bg-primary/5 p-4 text-left transition-colors hover:bg-primary/10 disabled:opacity-50"
             >
-              <div className="space-y-1">
+              <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium">Pro</span>
-                  <span className="rounded bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">Popular</span>
+                  <span className="text-sm font-medium">Pro</span>
+                  <span className="rounded bg-primary px-1.5 py-0.5 text-[10px] text-primary-foreground">Popular</span>
                 </div>
-                <div className="text-sm text-muted-foreground">100 GB storage, 500 MB files</div>
+                <div className="text-xs text-muted-foreground mt-0.5">100 GB storage, 500 MB files</div>
               </div>
               <div className="text-right">
                 {loading === (isYearly ? "pro_yearly" : "pro_monthly") ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    <div className="font-semibold">${isYearly ? "22" : "29"}/mo</div>
+                    <div className="text-sm font-medium">${isYearly ? "22" : "29"}/mo</div>
                     {isYearly && <div className="text-xs text-muted-foreground">$264/year</div>}
                   </>
                 )}
               </div>
             </button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
-    </div>
+    </>
   );
 }

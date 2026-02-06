@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type LucideIcon } from "lucide-react";
+import { type LucideIcon, ArrowUpRight } from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -15,6 +15,7 @@ interface NavItem {
   title: string;
   url: string;
   icon: LucideIcon;
+  external?: boolean;
 }
 
 interface NavMainProps {
@@ -37,14 +38,22 @@ export function NavMain({ items, label }: NavMainProps) {
           <SidebarMenuItem key={item.title}>
             <SidebarMenuButton
               asChild
-              isActive={pathname === item.url}
+              isActive={!item.external && pathname === item.url}
               tooltip={item.title}
               className="text-sm"
             >
-              <Link href={item.url}>
-                <item.icon className="size-4" />
-                <span>{item.title}</span>
-              </Link>
+              {item.external ? (
+                <a href={item.url} target="_blank" rel="noopener noreferrer">
+                  <item.icon className="size-4" />
+                  <span>{item.title}</span>
+                  <ArrowUpRight className="size-3 ml-auto text-muted-foreground" />
+                </a>
+              ) : (
+                <Link href={item.url}>
+                  <item.icon className="size-4" />
+                  <span>{item.title}</span>
+                </Link>
+              )}
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}

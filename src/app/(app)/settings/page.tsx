@@ -6,11 +6,30 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { requireUser } from "@/lib/auth/supabase";
+import { usersRepo } from "@/lib/db/repositories/users";
+import { filesRepo } from "@/lib/db/repositories/files";
+import { SettingsClient } from "./client";
 
-export default function SettingsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function SettingsPage() {
+  const authUser = await requireUser();
+
+  const [dbUser, fileCount] = await Promise.all([
+    usersRepo.findById(authUser.id),
+    filesRepo.countByUser(authUser.id),
+  ]);
+
+  const user = {
+    id: authUser.id,
+    email: authUser.email ?? "",
+    name: dbUser?.name ?? null,
+  };
+
   return (
     <>
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border">
+      <header className="flex h-14 shrink-0 items-center gap-2 ">
         <div className="flex items-center gap-2 px-6">
           <SidebarTrigger className="-ml-1" />
           <Separator
@@ -26,11 +45,9 @@ export default function SettingsPage() {
           </Breadcrumb>
         </div>
       </header>
-      <div className="flex flex-1 flex-col gap-6 p-8">
-        <div className="mx-auto w-full max-w-6xl">
-          <p className="text-sm text-muted-foreground">
-            Account settings coming soon.
-          </p>
+      <div className="flex flex-1 flex-col p-8">
+        <div className="mx-auto w-full max-w-6xl flex flex-col gap-6">
+          <SettingsClient user={user} fileCount={fileCount} />
         </div>
       </div>
     </>

@@ -11,6 +11,11 @@
     "dark": "#344966"
   },
   "favicon": "/images/favicon.svg",
+  "sidebar": {
+    "user": {
+      "visibility": "hidden"
+    }
+  },
   "navigation": {
     "tabs": [
       {
@@ -36,6 +41,7 @@
       },
       {
         "tab": "API Reference",
+        "icon": "book-open",
         "groups": [
           {
             "group": "Overview",
@@ -80,7 +86,8 @@
           "href": "https://github.com/elementnl/StashFyle",
           "icon": "github"
         }
-      ]
+      ],
+      "anchorsPosition": "bottom"
     }
   },
   "logo": {

@@ -5,9 +5,10 @@ import {
   Key,
   CreditCard,
   Settings,
-  FileText,
+  BookOpen,
   FolderOpen,
   Activity,
+  FileText,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { NavMain } from "@/components/nav-main";
@@ -30,7 +31,8 @@ const mainNav = [
 ];
 
 const resourcesNav = [
-  { title: "API Reference", url: "/api-reference", icon: FileText },
+  { title: "Guides", url: "https://stashfyle.mintlify.app/introduction", icon: FileText, external: true },
+  { title: "API Reference", url: "https://stashfyle.mintlify.app/api-reference/overview", icon: BookOpen, external: true },
 ];
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {

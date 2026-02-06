@@ -1,0 +1,97 @@
+---
+title: Authentication
+description: Learn about API key types and how to authenticate requests.
+---
+
+All API requests require authentication using an API key passed in the `Authorization` header.
+
+```bash
+Authorization: Bearer sk_live_your_key_here
+```
+
+## API Key Types
+
+StashFyle supports two types of API keys:
+
+### Secret Keys (`sk_`)
+
+<Info>
+  **Use for:** Server-side applications, backend services, scripts
+</Info>
+
+- Full access to all API endpoints
+- Can upload private files
+- Can generate signed URLs
+- **Never expose in client-side code**
+
+```
+sk_live_xxxxxxxxxxxxxxxxxxxx
+```
+
+### Public Keys (`pk_`)
+
+<Info>
+  **Use for:** Browser uploads, mobile apps, client-side code
+</Info>
+
+- Limited to upload endpoint only
+- Requires CORS origin configuration
+- Cannot access private files or signed URLs
+- Safe to use in frontend code
+
+```
+pk_live_xxxxxxxxxxxxxxxxxxxx
+```
+
+## Creating API Keys
+
+1. Go to [API Keys](https://stashfyle.com/api-keys) in your dashboard
+2. Click **Create API Key**
+3. Choose the key type (Secret or Public)
+4. Optionally add a name and allowed origins (for public keys)
+5. Copy your key immediately—it won't be shown again
+
+## Using Public Keys with CORS
+
+When using a public key from a browser, you must configure allowed origins:
+
+1. Edit your public key in the dashboard
+2. Add your domain(s) to **Allowed Origins**
+3. Include the full origin: `https://yourapp.com`
+
+```javascript
+// Browser upload with public key
+const form = new FormData();
+form.append('file', fileInput.files[0]);
+
+await fetch('https://api.stashfyle.com/v1/upload', {
+  method: 'POST',
+  headers: { 'Authorization': 'Bearer pk_live_xxx' },
+  body: form
+});
+```
+
+## Security Best Practices
+
+<AccordionGroup>
+  <Accordion title="Never expose secret keys">
+    Secret keys should only be used in server-side code. Use environment variables and never commit keys to version control.
+  </Accordion>
+  <Accordion title="Use public keys for browsers">
+    For client-side uploads, always use public keys with properly configured CORS origins.
+  </Accordion>
+  <Accordion title="Rotate keys regularly">
+    If you suspect a key has been compromised, revoke it immediately and create a new one.
+  </Accordion>
+  <Accordion title="Use separate keys for environments">
+    Create different keys for development, staging, and production.
+  </Accordion>
+</AccordionGroup>
+
+## Key Limits by Plan
+
+| Plan | API Keys |
+|------|----------|
+| Free | 2 |
+| Hobby | 10 |
+| Pro | 50 |

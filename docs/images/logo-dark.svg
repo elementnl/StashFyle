@@ -1,0 +1,8 @@
+<svg viewBox="0 0 120 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logo mark -->
+  <path d="M6 4H16L14 8H4L6 4Z" fill="#ffffff"/>
+  <path d="M8 10H18L16 14H6L8 10Z" fill="#ffffff" fill-opacity="0.7"/>
+  <path d="M10 16H20L18 20H8L10 16Z" fill="#ffffff" fill-opacity="0.4"/>
+  <!-- Text -->
+  <text x="28" y="17" font-family="Funnel Sans, sans-serif" font-size="14" font-weight="600" fill="#ffffff">StashFyle</text>
+</svg>

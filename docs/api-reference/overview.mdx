@@ -1,0 +1,112 @@
+---
+title: API Overview
+description: Base URL, authentication, and common patterns.
+---
+
+## Base URL
+
+All API requests are made to:
+
+```
+https://api.stashfyle.com/v1
+```
+
+## Authentication
+
+Include your API key in the `Authorization` header:
+
+```bash
+Authorization: Bearer sk_live_your_key_here
+```
+
+<Note>
+  Use secret keys (`sk_`) for server-side requests and public keys (`pk_`) for browser uploads.
+</Note>
+
+## Request Format
+
+- **Content-Type:** `multipart/form-data` for uploads, `application/json` for other requests
+- **Method:** Varies by endpoint (see individual endpoint docs)
+
+## Response Format
+
+All responses are JSON with consistent structure:
+
+### Success Response
+
+```json
+{
+  "id": "f_abc123xyz",
+  "url": "https://cdn.stashfyle.com/...",
+  "name": "photo.jpg",
+  ...
+}
+```
+
+### Error Response
+
+```json
+{
+  "error": {
+    "code": "error_code",
+    "message": "Human-readable description"
+  }
+}
+```
+
+## Pagination
+
+List endpoints support cursor-based pagination:
+
+```bash
+GET /v1/files?limit=20&cursor=eyJjcmVhdGVkX2F0IjoiMjAyNC0wMS0xNSJ9
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `limit` | integer | Max items to return (default: 50, max: 100) |
+| `cursor` | string | Cursor from previous response |
+
+Response includes pagination info:
+
+```json
+{
+  "files": [...],
+  "has_more": true,
+  "cursor": "eyJjcmVhdGVkX2F0IjoiMjAyNC0wMS0xNSJ9"
+}
+```
+
+## Common Headers
+
+### Request Headers
+
+| Header | Required | Description |
+|--------|----------|-------------|
+| `Authorization` | Yes | `Bearer <api_key>` |
+| `Content-Type` | Sometimes | `multipart/form-data` for uploads |
+
+### Response Headers
+
+| Header | Description |
+|--------|-------------|
+| `X-RateLimit-Limit` | Requests allowed per window |
+| `X-RateLimit-Remaining` | Requests remaining |
+| `X-RateLimit-Reset` | Unix timestamp when window resets |
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Upload" icon="upload" href="/api-reference/upload">
+    `POST /v1/upload`
+  </Card>
+  <Card title="Files" icon="file" href="/api-reference/files">
+    `GET /v1/files` · `GET /v1/files/:id` · `DELETE /v1/files/:id`
+  </Card>
+  <Card title="Signed URLs" icon="link" href="/api-reference/signed-urls">
+    `POST /v1/files/:id/signed-url`
+  </Card>
+  <Card title="Usage" icon="chart-bar" href="/api-reference/usage">
+    `GET /v1/usage`
+  </Card>
+</CardGroup>

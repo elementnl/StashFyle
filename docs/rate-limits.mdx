@@ -1,0 +1,134 @@
+---
+title: Rate Limits
+description: Understand request limits and how to handle rate limiting.
+---
+
+Rate limits protect the API from abuse and ensure fair usage for all users.
+
+## Limits by Plan
+
+| Plan | Requests per Minute |
+|------|---------------------|
+| Free | 100 |
+| Hobby | 500 |
+| Pro | 2,000 |
+
+Limits are applied per API key using a sliding window algorithm.
+
+## Rate Limit Headers
+
+Every response includes rate limit information:
+
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1705312800
+```
+
+| Header | Description |
+|--------|-------------|
+| `X-RateLimit-Limit` | Maximum requests allowed per window |
+| `X-RateLimit-Remaining` | Requests remaining in current window |
+| `X-RateLimit-Reset` | Unix timestamp when the window resets |
+
+## Handling Rate Limits
+
+When you exceed the limit, you'll receive a `429 Too Many Requests` response:
+
+```json
+{
+  "error": {
+    "code": "rate_limit_exceeded",
+    "message": "Rate limit exceeded"
+  }
+}
+```
+
+The response includes a `Retry-After` header indicating how long to wait:
+
+```
+Retry-After: 30
+```
+
+### Implementation Example
+
+<CodeGroup>
+
+```javascript JavaScript
+async function uploadWithRetry(file, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const response = await fetch('https://api.stashfyle.com/v1/upload', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer sk_live_xxx' },
+      body: file
+    });
+
+    if (response.status === 429) {
+      const retryAfter = parseInt(response.headers.get('Retry-After') || '60');
+      console.log(`Rate limited. Retrying in ${retryAfter}s...`);
+      await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+      continue;
+    }
+
+    return response.json();
+  }
+
+  throw new Error('Max retries exceeded');
+}
+```
+
+```python Python
+import time
+import requests
+
+def upload_with_retry(file_path, max_retries=3):
+    for attempt in range(max_retries):
+        with open(file_path, 'rb') as f:
+            response = requests.post(
+                'https://api.stashfyle.com/v1/upload',
+                headers={'Authorization': 'Bearer sk_live_xxx'},
+                files={'file': f}
+            )
+
+        if response.status_code == 429:
+            retry_after = int(response.headers.get('Retry-After', 60))
+            print(f"Rate limited. Retrying in {retry_after}s...")
+            time.sleep(retry_after)
+            continue
+
+        return response.json()
+
+    raise Exception('Max retries exceeded')
+```
+
+</CodeGroup>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Monitor your remaining quota">
+    Check `X-RateLimit-Remaining` to proactively slow down before hitting limits.
+  </Accordion>
+  <Accordion title="Use exponential backoff">
+    Instead of retrying immediately, wait progressively longer between retries.
+  </Accordion>
+  <Accordion title="Batch operations when possible">
+    Instead of many small requests, consider batching operations.
+  </Accordion>
+  <Accordion title="Cache responses">
+    For read operations, cache responses to reduce API calls.
+  </Accordion>
+  <Accordion title="Use separate keys for different services">
+    Each key has its own rate limit, so separate keys for different services won't interfere.
+  </Accordion>
+</AccordionGroup>
+
+## Need Higher Limits?
+
+If you're consistently hitting rate limits, consider upgrading your plan:
+
+| | Free | Hobby ($9/mo) | Pro ($29/mo) |
+|--|------|---------------|--------------|
+| Requests/min | 100 | 500 | 2,000 |
+
+[Upgrade your plan →](https://stashfyle.com/billing)

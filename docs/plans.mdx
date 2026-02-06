@@ -1,0 +1,102 @@
+---
+title: Plans & Limits
+description: Compare plans and understand your usage limits.
+---
+
+## Plan Comparison
+
+| Feature | Free | Hobby ($9/mo) | Pro ($29/mo) |
+|---------|------|---------------|--------------|
+| **Storage** | 1 GB | 10 GB | 100 GB |
+| **Bandwidth** | 5 GB/mo | 50 GB/mo | 500 GB/mo |
+| **Max File Size** | 10 MB | 100 MB | 500 MB |
+| **Uploads/Month** | 1,000 | 50,000 | 500,000 |
+| **API Keys** | 2 | 10 | 50 |
+| **Rate Limit** | 100 req/min | 500 req/min | 2,000 req/min |
+
+<Info>
+  **Zero egress fees!** Powered by Cloudflare R2, so you'll never pay for downloads. Bandwidth limits are for fair use only.
+</Info>
+
+## What Happens at Limits?
+
+### Storage Limit
+
+When you exceed your storage limit, new uploads will fail with:
+
+```json
+{
+  "error": {
+    "code": "storage_limit_exceeded",
+    "message": "Storage limit exceeded"
+  }
+}
+```
+
+Delete files or upgrade your plan to continue uploading.
+
+### File Size Limit
+
+Files larger than your plan's limit will be rejected:
+
+```json
+{
+  "error": {
+    "code": "file_too_large",
+    "message": "File exceeds maximum size of 10MB"
+  }
+}
+```
+
+### Upload Count
+
+Monthly upload counts reset on the 1st of each month (UTC). Exceeding the limit returns a storage limit error.
+
+## Checking Your Usage
+
+View your current usage in the [Dashboard](https://stashfyle.com/dashboard) or via API:
+
+```bash
+curl https://api.stashfyle.com/v1/usage \
+  -H "Authorization: Bearer sk_live_xxx"
+```
+
+```json
+{
+  "storage_bytes": 524288000,
+  "bandwidth_bytes": 1073741824,
+  "upload_count": 150,
+  "period_start": "2024-01-01"
+}
+```
+
+## Upgrading
+
+1. Go to [Billing](https://stashfyle.com/billing) in your dashboard
+2. Select your new plan
+3. Complete payment via Stripe
+4. New limits take effect immediately
+
+## Downgrading
+
+When downgrading to a lower plan:
+
+- If you're under the new plan's limits, the change takes effect at the end of your billing period
+- If you're over the new plan's limits, you'll enter a **14-day grace period** to reduce your usage
+- During grace period, uploads are disabled but downloads work normally
+- After grace period, files exceeding the limit are deleted (largest files first)
+
+<Warning>
+  Before downgrading, check your current storage usage against the target plan's limits.
+</Warning>
+
+## Annual Billing
+
+Save money with annual billing:
+
+| Plan | Monthly | Annual (per month) | Savings |
+|------|---------|-------------------|---------|
+| Hobby | $9/mo | $7.50/mo | 17% off |
+| Pro | $29/mo | $22/mo | 24% off |
+
+Switch to annual billing in your [Billing settings](https://stashfyle.com/billing).

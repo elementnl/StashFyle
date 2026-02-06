@@ -1,0 +1,145 @@
+---
+title: Usage
+api: GET /v1/usage
+description: Get your current usage statistics.
+---
+
+Retrieve your current usage statistics including storage, bandwidth, and upload counts.
+
+## Response
+
+<ResponseField name="storage_bytes" type="integer" required>
+  Total storage used in bytes.
+</ResponseField>
+
+<ResponseField name="bandwidth_bytes" type="integer" required>
+  Bandwidth used this period in bytes.
+</ResponseField>
+
+<ResponseField name="upload_count" type="integer" required>
+  Number of uploads this period.
+</ResponseField>
+
+<ResponseField name="period_start" type="string" required>
+  Start of current billing period (YYYY-MM-DD).
+</ResponseField>
+
+## Example
+
+<CodeGroup>
+
+```bash curl
+curl https://api.stashfyle.com/v1/usage \
+  -H "Authorization: Bearer sk_live_xxx"
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.stashfyle.com/v1/usage', {
+  headers: { 'Authorization': 'Bearer sk_live_xxx' }
+});
+
+const usage = await response.json();
+console.log(`Storage: ${usage.storage_bytes} bytes`);
+```
+
+```python Python
+response = requests.get(
+    'https://api.stashfyle.com/v1/usage',
+    headers={'Authorization': 'Bearer sk_live_xxx'}
+)
+
+usage = response.json()
+print(f"Storage: {usage['storage_bytes']} bytes")
+```
+
+</CodeGroup>
+
+```json Response
+{
+  "storage_bytes": 524288000,
+  "bandwidth_bytes": 1073741824,
+  "upload_count": 150,
+  "period_start": "2024-01-01"
+}
+```
+
+## Understanding Usage
+
+### Storage
+
+Total bytes of all files currently stored. Decreases when you delete files.
+
+```javascript
+const storageGB = usage.storage_bytes / (1024 * 1024 * 1024);
+console.log(`Using ${storageGB.toFixed(2)} GB`);
+```
+
+### Bandwidth
+
+Total bytes downloaded from your files this billing period. Resets monthly.
+
+<Note>
+  Bandwidth has zero egress fees thanks to Cloudflare R2. Limits are for fair use only.
+</Note>
+
+### Upload Count
+
+Number of files uploaded this billing period. Resets monthly.
+
+## Monitoring Usage
+
+### Check Against Limits
+
+```javascript
+const PLAN_LIMITS = {
+  free: { storage: 1 * 1024 * 1024 * 1024, uploads: 1000 },
+  hobby: { storage: 10 * 1024 * 1024 * 1024, uploads: 50000 },
+  pro: { storage: 100 * 1024 * 1024 * 1024, uploads: 500000 },
+};
+
+async function checkUsage(plan) {
+  const response = await fetch('https://api.stashfyle.com/v1/usage', {
+    headers: { 'Authorization': `Bearer ${API_KEY}` }
+  });
+
+  const usage = await response.json();
+  const limits = PLAN_LIMITS[plan];
+
+  return {
+    storageUsedPercent: (usage.storage_bytes / limits.storage) * 100,
+    uploadsUsedPercent: (usage.upload_count / limits.uploads) * 100,
+    isNearLimit: usage.storage_bytes > limits.storage * 0.8
+  };
+}
+```
+
+### Set Up Alerts
+
+```javascript
+async function checkAndAlert() {
+  const { storageUsedPercent, isNearLimit } = await checkUsage('hobby');
+
+  if (isNearLimit) {
+    // Send notification to upgrade or clean up
+    console.warn(`Storage at ${storageUsedPercent.toFixed(1)}%`);
+  }
+}
+
+// Run daily
+setInterval(checkAndAlert, 24 * 60 * 60 * 1000);
+```
+
+## Plan Limits Reference
+
+| Plan | Storage | Bandwidth/mo | Uploads/mo |
+|------|---------|--------------|------------|
+| Free | 1 GB | 5 GB | 1,000 |
+| Hobby | 10 GB | 50 GB | 50,000 |
+| Pro | 100 GB | 500 GB | 500,000 |
+
+## Errors
+
+| Code | Status | Description |
+|------|--------|-------------|
+| `unauthorized` | 401 | Invalid or missing API key |
+| `rate_limit_exceeded` | 429 | Too many requests |

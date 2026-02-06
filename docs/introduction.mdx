@@ -1,0 +1,131 @@
+---
+title: Introduction
+description: Dead simple file uploads for indie devs. POST a file, get a URL.
+---
+
+<img
+  className="block dark:hidden"
+  src="/images/hero-light.png"
+  alt="StashFyle Hero"
+/>
+<img
+  className="hidden dark:block"
+  src="/images/hero-dark.png"
+  alt="StashFyle Hero"
+/>
+
+## What is StashFyle?
+
+StashFyle is a **file storage API** that wraps Cloudflare R2. No SDKs required, no complex dashboards—just a curl-friendly API with indie pricing.
+
+Skip the S3/IAM/CORS dance. One API key, one endpoint, done.
+
+## Why StashFyle?
+
+<CardGroup cols={2}>
+  <Card title="No SDK Required" icon="code">
+    Works from curl, Python, Go, Ruby, PHP—anything that can make HTTP requests.
+  </Card>
+  <Card title="Simple Pricing" icon="dollar-sign">
+    Flat monthly tiers. No calculator needed, no surprise bills.
+  </Card>
+  <Card title="Zero Egress Fees" icon="cloud">
+    Powered by Cloudflare R2. Download your files as much as you want.
+  </Card>
+  <Card title="Private Files" icon="lock">
+    Generate signed URLs for private files with custom expiration.
+  </Card>
+</CardGroup>
+
+## Quick Example
+
+Upload a file in one line:
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.stashfyle.com/v1/upload \
+  -H "Authorization: Bearer sk_live_xxx" \
+  -F "file=@photo.jpg"
+```
+
+```javascript JavaScript
+const form = new FormData();
+form.append('file', fileInput.files[0]);
+
+const response = await fetch('https://api.stashfyle.com/v1/upload', {
+  method: 'POST',
+  headers: { 'Authorization': 'Bearer sk_live_xxx' },
+  body: form
+});
+
+const { url } = await response.json();
+```
+
+```python Python
+import requests
+
+with open('photo.jpg', 'rb') as f:
+    response = requests.post(
+        'https://api.stashfyle.com/v1/upload',
+        headers={'Authorization': 'Bearer sk_live_xxx'},
+        files={'file': f}
+    )
+
+url = response.json()['url']
+```
+
+```go Go
+package main
+
+import (
+    "bytes"
+    "mime/multipart"
+    "net/http"
+    "os"
+)
+
+func main() {
+    file, _ := os.Open("photo.jpg")
+    defer file.Close()
+
+    body := &bytes.Buffer{}
+    writer := multipart.NewWriter(body)
+    part, _ := writer.CreateFormFile("file", "photo.jpg")
+    io.Copy(part, file)
+    writer.Close()
+
+    req, _ := http.NewRequest("POST", "https://api.stashfyle.com/v1/upload", body)
+    req.Header.Set("Authorization", "Bearer sk_live_xxx")
+    req.Header.Set("Content-Type", writer.FormDataContentType())
+
+    client := &http.Client{}
+    client.Do(req)
+}
+```
+
+</CodeGroup>
+
+Response:
+
+```json
+{
+  "id": "f_abc123xyz",
+  "url": "https://cdn.stashfyle.com/live/user_id/f_abc123xyz/photo.jpg",
+  "name": "photo.jpg",
+  "size": 248000,
+  "type": "image/jpeg",
+  "created_at": "2024-01-15T10:30:00Z"
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get your API key and upload your first file in 2 minutes.
+  </Card>
+  <Card title="API Reference" icon="book" href="/api-reference/overview">
+    Explore all endpoints and their parameters.
+  </Card>
+</CardGroup>

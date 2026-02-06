@@ -1,0 +1,90 @@
+---
+title: Quickstart
+description: Get your API key and upload your first file in 2 minutes.
+---
+
+## 1. Create an Account
+
+Sign up at [stashfyle.com](https://stashfyle.com) using your email or GitHub.
+
+## 2. Get Your API Key
+
+1. Go to the [API Keys](https://stashfyle.com/api-keys) page in your dashboard
+2. Click **Create API Key**
+3. Choose **Secret Key** for server-side use
+4. Copy your key—you won't see it again!
+
+<Warning>
+  Keep your secret key safe. Never expose it in client-side code or commit it to version control.
+</Warning>
+
+## 3. Upload Your First File
+
+<CodeGroup>
+
+```bash curl
+curl -X POST https://api.stashfyle.com/v1/upload \
+  -H "Authorization: Bearer sk_live_your_key_here" \
+  -F "file=@/path/to/photo.jpg"
+```
+
+```javascript Node.js
+const fs = require('fs');
+const FormData = require('form-data');
+
+const form = new FormData();
+form.append('file', fs.createReadStream('./photo.jpg'));
+
+const response = await fetch('https://api.stashfyle.com/v1/upload', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer sk_live_your_key_here',
+    ...form.getHeaders()
+  },
+  body: form
+});
+
+const data = await response.json();
+console.log(data.url); // Your file URL!
+```
+
+```python Python
+import requests
+
+with open('photo.jpg', 'rb') as f:
+    response = requests.post(
+        'https://api.stashfyle.com/v1/upload',
+        headers={'Authorization': 'Bearer sk_live_your_key_here'},
+        files={'file': f}
+    )
+
+print(response.json()['url'])  # Your file URL!
+```
+
+</CodeGroup>
+
+## 4. View Your Files
+
+Check your uploaded files in the [Files](https://stashfyle.com/files) dashboard, or list them via API:
+
+```bash
+curl https://api.stashfyle.com/v1/files \
+  -H "Authorization: Bearer sk_live_your_key_here"
+```
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/authentication">
+    Learn about API key types and security best practices.
+  </Card>
+  <Card title="Upload Options" icon="upload" href="/api-reference/upload">
+    Explore folders, private files, and auto-expiring uploads.
+  </Card>
+  <Card title="Rate Limits" icon="gauge" href="/rate-limits">
+    Understand request limits for your plan.
+  </Card>
+  <Card title="Error Handling" icon="triangle-exclamation" href="/errors">
+    Handle errors gracefully in your application.
+  </Card>
+</CardGroup>

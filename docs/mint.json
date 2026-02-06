@@ -1,0 +1,86 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "StashFyle",
+  "logo": {
+    "dark": "/images/logo-dark.svg",
+    "light": "/images/logo-light.svg"
+  },
+  "favicon": "/images/favicon.svg",
+  "colors": {
+    "primary": "#344966",
+    "light": "#4a6a8a",
+    "dark": "#344966",
+    "anchors": {
+      "from": "#344966",
+      "to": "#4a6a8a"
+    }
+  },
+  "font": {
+    "headings": {
+      "family": "Funnel Sans",
+      "weight": 600
+    },
+    "body": {
+      "family": "Funnel Sans",
+      "weight": 400
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Dashboard",
+      "url": "https://stashfyle.com/dashboard"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Get API Key",
+    "url": "https://stashfyle.com/api-keys"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/stashfyle"
+    },
+    {
+      "name": "Community",
+      "icon": "discord",
+      "url": "https://discord.gg/stashfyle"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": ["introduction", "quickstart", "authentication"]
+    },
+    {
+      "group": "Guides",
+      "pages": ["errors", "rate-limits", "plans"]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api-reference/overview",
+        "api-reference/upload",
+        "api-reference/files",
+        "api-reference/signed-urls",
+        "api-reference/usage"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "twitter": "https://twitter.com/stashfyle",
+    "github": "https://github.com/stashfyle"
+  },
+  "api": {
+    "baseUrl": "https://api.stashfyle.com",
+    "auth": {
+      "method": "bearer"
+    }
+  }
+}

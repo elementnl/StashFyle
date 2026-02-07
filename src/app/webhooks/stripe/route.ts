@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { constructWebhookEvent, getPlanFromPriceId, getSubscription as fetchStripeSubscription } from "@/lib/billing/stripe";
+
+// Stripe SDK v20 removed these from types but API still returns them
+type SubscriptionWithPeriod = Stripe.Subscription & {
+  current_period_start?: number;
+  current_period_end?: number;
+};
 import { subscriptionsRepo } from "@/lib/db/repositories/subscriptions";
 import { usersRepo } from "@/lib/db/repositories/users";
 import { startGracePeriod } from "@/lib/services/subscriptions";
@@ -94,7 +100,7 @@ async function handleSubscriptionUpdated(webhookSub: Stripe.Subscription) {
   }
 
   // Fetch full subscription from Stripe API to get all fields (webhook data is incomplete)
-  const subscription = await fetchStripeSubscription(webhookSub.id);
+  const subscription = await fetchStripeSubscription(webhookSub.id) as SubscriptionWithPeriod;
 
   console.log(`[Webhook] Stripe API response:`, JSON.stringify({
     current_period_start: subscription.current_period_start,
@@ -151,7 +157,13 @@ async function handleSubscriptionUpdated(webhookSub: Stripe.Subscription) {
   } else {
     await subscriptionsRepo.create({
       user_id: user.id,
-      ...subscriptionData,
+      plan,
+      status: mapStripeStatus(subscription.status),
+      stripe_subscription_id: subscription.id,
+      stripe_price_id: priceId,
+      cancel_at_period_end: isScheduledToCancel,
+      ...(periodStart && { current_period_start: new Date(periodStart * 1000).toISOString() }),
+      ...(periodEnd && { current_period_end: new Date(periodEnd * 1000).toISOString() }),
     });
   }
 

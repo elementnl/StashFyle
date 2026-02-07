@@ -20,6 +20,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
 
 const mainNav = [
   { title: "Home", url: "/dashboard", icon: Home },
@@ -44,7 +45,7 @@ export function AppSidebar({ userEmail, userName, ...props }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="p-4 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:pt-4 group-data-[collapsible=icon]:pb-2">
-        <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
+        <Link href="/" className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
           <Logo className="size-7 text-primary shrink-0" />
           <span
             className="text-[33px] text-accent-foreground leading-none group-data-[collapsible=icon]:hidden select-none"
@@ -52,7 +53,7 @@ export function AppSidebar({ userEmail, userName, ...props }: AppSidebarProps) {
           >
             StashFyle
           </span>
-        </div>
+        </Link>
       </SidebarHeader>
       <SidebarContent className="px-2 group-data-[collapsible=icon]:px-0">
         <NavMain items={mainNav} />

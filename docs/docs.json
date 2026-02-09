@@ -115,7 +115,12 @@
   "api": {
     "baseUrl": "https://api.stashfyle.com",
     "auth": {
-      "method": "bearer"
+      "method": "bearer",
+      "name": "Authorization",
+      "inputPrefix": "Bearer "
+    },
+    "playground": {
+      "mode": "simple"
     }
   }
 }

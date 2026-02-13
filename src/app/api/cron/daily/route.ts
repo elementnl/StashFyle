@@ -13,15 +13,59 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const expiredFilesResult = await cleanupExpiredFiles();
+  const gracePeriodResult = await processGracePeriods();
+
+  return NextResponse.json({
+    success: true,
+    expired_files: expiredFilesResult,
+    grace_periods: gracePeriodResult,
+  });
+}
+
+async function cleanupExpiredFiles(): Promise<{
+  deleted: number;
+  bytesFreed: number;
+  errors: string[];
+}> {
+  const result = { deleted: 0, bytesFreed: 0, errors: [] as string[] };
+
+  try {
+    const expiredFiles = await filesRepo.findExpired(100);
+
+    for (const file of expiredFiles) {
+      try {
+        await deleteFromR2(file.storage_key);
+        await filesRepo.softDelete(file.id);
+        await usageRepo.increment(file.user_id, "storage_bytes", -file.size_bytes);
+        result.deleted++;
+        result.bytesFreed += file.size_bytes;
+      } catch (error) {
+        result.errors.push(`Failed to delete file ${file.id}: ${error}`);
+      }
+    }
+  } catch (error) {
+    result.errors.push(`Failed to query expired files: ${error}`);
+  }
+
+  return result;
+}
+
+async function processGracePeriods(): Promise<{
+  processed: number;
+  filesDeleted: number;
+  bytesFreed: number;
+  errors: string[];
+}> {
+  const result = {
+    processed: 0,
+    filesDeleted: 0,
+    bytesFreed: 0,
+    errors: [] as string[],
+  };
+
   try {
     const expiredSubscriptions = await getExpiredGracePeriodSubscriptions();
-
-    const results = {
-      processed: 0,
-      filesDeleted: 0,
-      bytesFreed: 0,
-      errors: [] as string[],
-    };
 
     for (const subscription of expiredSubscriptions) {
       try {
@@ -31,7 +75,7 @@ export async function GET(req: NextRequest) {
 
         if (usage.storage_bytes <= limits.maxStorage) {
           await completeGracePeriod(subscription.id);
-          results.processed++;
+          result.processed++;
           continue;
         }
 
@@ -41,29 +85,22 @@ export async function GET(req: NextRequest) {
           bytesToFree
         );
 
-        results.filesDeleted += deletionResult.filesDeleted;
-        results.bytesFreed += deletionResult.bytesFreed;
-        results.errors.push(...deletionResult.errors);
+        result.filesDeleted += deletionResult.filesDeleted;
+        result.bytesFreed += deletionResult.bytesFreed;
+        result.errors.push(...deletionResult.errors);
 
         await updateUserStorage(subscription.user_id, deletionResult.bytesFreed);
         await completeGracePeriod(subscription.id);
-        results.processed++;
+        result.processed++;
       } catch (error) {
-        results.errors.push(`Failed to process subscription ${subscription.id}: ${error}`);
+        result.errors.push(`Failed to process subscription ${subscription.id}: ${error}`);
       }
     }
-
-    return NextResponse.json({
-      success: true,
-      ...results,
-    });
   } catch (error) {
-    console.error("Grace period cron error:", error);
-    return NextResponse.json(
-      { error: "Failed to process grace periods" },
-      { status: 500 }
-    );
+    result.errors.push(`Failed to query grace periods: ${error}`);
   }
+
+  return result;
 }
 
 async function deleteFilesToFreeSpace(

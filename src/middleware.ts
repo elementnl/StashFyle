@@ -33,6 +33,13 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Vercel rewrites run after middleware, so api.stashfyle.com requests
+  // still have their original path here (e.g. /v1/upload, not /api/v1/upload)
+  const host = request.headers.get("host") ?? "";
+  if (host.startsWith("api.")) {
+    return supabaseResponse;
+  }
+
   if (
     !user &&
     !request.nextUrl.pathname.startsWith("/login") &&
